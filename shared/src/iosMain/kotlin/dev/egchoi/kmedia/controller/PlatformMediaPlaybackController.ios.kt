@@ -319,6 +319,7 @@ internal actual class PlatformMediaPlaybackController(
         val currentSeconds = playerStateManager.getCurrentPosition()
         val durationSeconds = playerStateManager.getDuration()
         val state = PlaybackState(
+            mediaId = playlistManager.getCurrentMusic()?.id,
             playingStatus = if (isLoading) PlayingStatus.BUFFERING else playerStateManager.currentPlaybackStatus,
             currentIndex = playlistManager.currentIndex,
             hasPrevious = playlistManager.hasPrevious(),
