@@ -45,7 +45,7 @@ Add the following permissions and service to your `AndroidManifest.xml`:
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
 <!-- Service registration -->
-<service android:name="dev.egchoi.kmedia.session.PlaybackService"
+<service android:name="io.github.moonggae.kmedia.session.PlaybackService"
     android:exported="false"
     android:foregroundServiceType="mediaPlayback">
     <intent-filter>

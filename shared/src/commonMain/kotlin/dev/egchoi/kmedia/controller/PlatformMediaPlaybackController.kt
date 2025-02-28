@@ -1,3 +1,0 @@
-package dev.egchoi.kmedia.controller
-
-expect internal class PlatformMediaPlaybackController: MediaPlaybackController

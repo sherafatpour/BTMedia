@@ -71,7 +71,7 @@ kotlin {
 }
 
 android {
-    namespace = "dev.egchoi.kmedia"
+    namespace = "io.github.moonggae.kmedia"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

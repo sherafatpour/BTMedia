@@ -55,11 +55,11 @@ kotlin {
 }
 
 android {
-    namespace = "dev.egchoi.kmedia.sample"
+    namespace = "io.github.moonggae.kmedia.sample"
     compileSdk = 35
     
     defaultConfig {
-        applicationId = "dev.egchoi.kmedia.sample"
+        applicationId = "io.github.moonggae.kmedia.sample"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
