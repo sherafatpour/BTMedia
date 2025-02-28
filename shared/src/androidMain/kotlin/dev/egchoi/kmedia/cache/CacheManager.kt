@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 @OptIn(UnstableApi::class)
-class CacheManager(
+internal class CacheManager(
     private val context: Context,
     private val dataStore: CacheSettings,
 ) {

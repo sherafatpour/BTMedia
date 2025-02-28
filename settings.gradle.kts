@@ -16,4 +16,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "KMedia"
 include(":shared")
-include(":cache")

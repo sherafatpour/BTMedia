@@ -1,11 +1,10 @@
 package dev.egchoi.kmedia.cache.di
 
 import android.content.Context
+import com.russhwolf.settings.ObservableSettings
+import com.russhwolf.settings.SharedPreferencesSettings
 import dev.egchoi.kmedia.cache.CacheManager
 import dev.egchoi.kmedia.cache.CacheSettings
-import com.russhwolf.settings.ObservableSettings
-import com.russhwolf.settings.Settings
-import com.russhwolf.settings.SharedPreferencesSettings
 import org.koin.core.module.Module
 import org.koin.dsl.bind
 import org.koin.dsl.module

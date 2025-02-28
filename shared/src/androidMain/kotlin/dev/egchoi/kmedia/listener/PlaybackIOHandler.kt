@@ -10,7 +10,7 @@ import dev.egchoi.kmedia.util.isNetworkSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-class PlaybackIOHandler(
+internal class PlaybackIOHandler(
     private val scope: CoroutineScope,
     private val cacheManager: CacheManager,
     private val cacheStatusListener: CacheStatusListener
