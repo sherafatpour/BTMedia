@@ -9,3 +9,7 @@ interface CacheStatusListener {
         FULLY_CACHED
     }
 }
+
+class NoOpCacheStatusListener: CacheStatusListener {
+    override fun onCacheStatusChanged(musicId: String, status: CacheStatusListener.CacheStatus) {}
+}

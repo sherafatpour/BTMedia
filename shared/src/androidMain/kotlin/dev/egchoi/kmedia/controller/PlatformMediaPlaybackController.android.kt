@@ -2,7 +2,6 @@ package dev.egchoi.kmedia.controller
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import dev.egchoi.kmedia.model.Music
@@ -112,30 +111,14 @@ internal actual class PlatformMediaPlaybackController(
         }
     }
 
-    override fun updateCurrentPlaylistMusic(music: Music) = executeAfterPrepare { controller ->
-        val mediaItem = music.asMediaItem()
-        val index = controller.getMediaItemIndex(mediaItem) ?: return@executeAfterPrepare
-        controller.replaceMediaItem(index, mediaItem)
+    override fun release() = executeAfterPrepare { controller ->
+        controller.release()
     }
 
     private inline fun executeAfterPrepare(crossinline action: suspend (MediaController) -> Unit) {
         scope.launch {
             val controller = activeControllerDeferred.await()
             action(controller)
-        }
-    }
-
-
-    fun recreatePlayer() {
-        scope.launch {
-            val controller = activeControllerDeferred.await()
-
-            val intent = Intent(context, PlaybackService::class.java).apply {
-                action = PlaybackService.ACTION_RECREATE_PLAYER
-            }
-            context.startService(intent)
-
-            controller.release()
         }
     }
 

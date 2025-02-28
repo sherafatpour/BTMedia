@@ -31,13 +31,10 @@ import java.io.File
 @OptIn(UnstableApi::class)
 internal class CacheManager(
     private val context: Context,
-    private val dataStore: CacheSettings,
+    private val config: CacheConfig,
 ) {
-    val enableCache: Boolean get() = dataStore.getEnableCache()
-    val maxSizeMb: Int = dataStore.getStorageMbSize()
-
-    val maxSizeMbFlow: Flow<Int> = dataStore.getStorageMbSizeFlow()
-    val enableCacheFlow: Flow<Boolean> = dataStore.getEnableCacheFlow()
+    val enableCache: Boolean get() = config.enable
+    val maxSizeMb: Int = config.sizeMB
 
     private var cacheStorage: File = File(context.getExternalFilesDir(null), CACHE_DIR)
     private val cacheMaxBytes: Long = maxSizeMb * 1024 * 1024L
@@ -132,23 +129,6 @@ internal class CacheManager(
             ProgressiveMediaSource.Factory(cacheDataSourceFactory)
         }
     }
-
-
-    fun setCacheEnable(enable: Boolean) {
-        val wasEnabled = enableCache
-        if (!enable && wasEnabled) {
-            cleanCache()
-            released = true
-            clearCacheListener()
-        }
-        dataStore.setEnableCache(enable)
-        if (enable && !wasEnabled) {
-            // 캐시 활성화 시 released 상태 초기화
-            released = false
-        }
-    }
-
-    fun setMaxSize(mb: Int) = dataStore.setStorageMbSize(mb)
 
     @OptIn(UnstableApi::class)
     suspend fun preCacheMedia(

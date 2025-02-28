@@ -23,7 +23,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import platform.AVFoundation.AVKeyValueStatusLoaded
 import platform.AVFoundation.AVPlayerItem
@@ -109,11 +108,11 @@ internal actual class PlatformMediaPlaybackController(
         }
     }
 
-    private suspend fun playMusic(music: Music, playImmediately: Boolean) {
+    private fun playMusic(music: Music, playImmediately: Boolean) {
         val nsUrl = NSURL(string = music.uri)
         val streamingAsset = createStreamingAsset(nsUrl)
 
-        if (!cacheRepository.enableCache.first()) {
+        if (!cacheRepository.enableCache) {
             prepareAndPlay(streamingAsset, music, playImmediately)
             return
         }
@@ -312,8 +311,8 @@ internal actual class PlatformMediaPlaybackController(
         updatePlaybackState()
     }
 
-    override fun updateCurrentPlaylistMusic(music: Music) {
-        // Implementation needed for local music download
+    override fun release() {
+        stop()
     }
 
     private fun updatePlaybackState() {

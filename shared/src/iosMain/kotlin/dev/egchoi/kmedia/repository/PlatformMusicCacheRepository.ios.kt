@@ -1,14 +1,12 @@
 package dev.egchoi.kmedia.repository
 
-import dev.egchoi.kmedia.cache.CacheSettings
+import dev.egchoi.kmedia.cache.CacheConfig
 import dev.egchoi.kmedia.cache.CacheStatusListener
 import dev.egchoi.kmedia.cache.CachingMediaFileLoader
 import dev.egchoi.kmedia.cache.MusicCacheRepository
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -17,37 +15,23 @@ import platform.Foundation.NSURL
 internal actual class PlatformMusicCacheRepository(
     private val fileLoader: CachingMediaFileLoader,
     private val cacheStatusListener: CacheStatusListener,
-    private val cacheSettings: CacheSettings,
+    private val cacheSettings: CacheConfig,
     private val coroutineScope: CoroutineScope,
 ) : MusicCacheRepository {
-    override val maxSizeMb: Flow<Int> = cacheSettings.getStorageMbSizeFlow()
+    override val maxSizeMb: Int = cacheSettings.sizeMB
 
-    override suspend fun setMaxSizeMb(size: Int) {
-        cacheSettings.setStorageMbSize(size)
-    }
+    override val enableCache: Boolean = cacheSettings.enable
 
-    override val enableCache: Flow<Boolean> = cacheSettings.getEnableCacheFlow()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val usedSizeBytes: Flow<Long?> = enableCache.flatMapLatest { enable ->
-        if (enable) {
-            flow<Long?> {
-                while (true) {
-                    val size = fileLoader.getTotalCachedBytes()
-                    emit(size)
-                    delay(1000)
-                }
+    override val usedSizeBytes: Flow<Long?> = if (enableCache) {
+        flow {
+            while (true) {
+                val size = fileLoader.getTotalCachedBytes()
+                emit(size)
+                delay(1000)
             }
-        } else {
-            flowOf(0L)
         }
-    }
-
-    override suspend fun setCacheEnable(enable: Boolean) {
-        cacheSettings.setEnableCache(enable)
-        if (!enable) {
-            clearCache()
-        }
+    } else {
+        flowOf(0L)
     }
 
     override suspend fun clearCache() {

@@ -34,7 +34,7 @@ interface MediaPlaybackController {
 
     fun removeMusics(vararg musicId: String)
 
-    fun updateCurrentPlaylistMusic(music: Music)
+    fun release()
 
 //    fun fastForward()
 //

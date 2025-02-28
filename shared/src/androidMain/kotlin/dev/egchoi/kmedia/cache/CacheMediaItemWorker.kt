@@ -6,6 +6,7 @@ import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+// TODO: factory
 internal class CacheMediaItemWorker(
     private val cacheManager: CacheManager,
     private val cacheStatusListener: CacheStatusListener,

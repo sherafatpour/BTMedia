@@ -16,7 +16,7 @@ data class DownloadInfo(
 
 @OptIn(ExperimentalForeignApi::class)
 class CachingMediaFileLoader(
-    private val cacheSettings: CacheSettings
+    private val cacheConfig: CacheConfig
 ) {
     private val fileManager = NSFileManager.defaultManager
     private val session: AVAssetDownloadURLSession
@@ -139,7 +139,7 @@ class CachingMediaFileLoader(
         onCompletion: () -> Unit,
         onFail: () -> Unit
     ) {
-        if (!cacheSettings.getEnableCache()) {
+        if (!cacheConfig.enable) {
             onFail()
             return
         }
@@ -203,7 +203,7 @@ class CachingMediaFileLoader(
         onCompleteCaching: () -> Unit,
         onGotAsset: (AVURLAsset?) -> Unit,
     ) {
-        if (!cacheSettings.getEnableCache()) {
+        if (!cacheConfig.enable) {
             val streamingAsset = AVURLAsset(
                 url, mapOf(
                     AVURLAssetPreferPreciseDurationAndTimingKey to true
@@ -269,7 +269,7 @@ class CachingMediaFileLoader(
     }
 
     private fun checkAndCleanupCacheIfNeeded() {
-        val maxBytes = cacheSettings.getStorageMbSize() * 1024 * 1024L
+        val maxBytes = cacheConfig.sizeMB * 1024 * 1024L
         val currentSize = getTotalCachedBytes()
 
         if (currentSize > maxBytes) {

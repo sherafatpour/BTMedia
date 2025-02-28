@@ -3,14 +3,11 @@ package dev.egchoi.kmedia.cache
 import kotlinx.coroutines.flow.Flow
 
 interface MusicCacheRepository {
-    val maxSizeMb: Flow<Int>
-    suspend fun setMaxSizeMb(size: Int)
+    val maxSizeMb: Int
 
     val usedSizeBytes: Flow<Long?>
 
-    val enableCache: Flow<Boolean>
-
-    suspend fun setCacheEnable(enable: Boolean)
+    val enableCache: Boolean
 
     suspend fun clearCache()
 

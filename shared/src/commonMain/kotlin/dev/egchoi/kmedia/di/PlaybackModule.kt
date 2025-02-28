@@ -1,7 +1,6 @@
 package dev.egchoi.kmedia.di
 
 import dev.egchoi.kmedia.cache.di.cacheModule
-import dev.egchoi.kmedia.repository.DefaultPlaybackStateRepository
 import dev.egchoi.kmedia.state.PlaybackStateManager
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -21,10 +20,6 @@ val playbackModule = module {
     single { Dispatchers.Main } bind CoroutineDispatcher::class
 
     single { PlaybackStateManager }
-
-    single { DefaultPlaybackStateRepository(
-        playbackStateManager = get()
-    ) }
 
     includes(getPlatformPlaybackModule())
 }
