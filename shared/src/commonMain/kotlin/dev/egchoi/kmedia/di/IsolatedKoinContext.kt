@@ -1,5 +1,6 @@
 package dev.egchoi.kmedia.di
 
+import org.koin.core.Koin
 import org.koin.core.KoinApplication
 import org.koin.core.module.Module
 import org.koin.dsl.koinApplication
@@ -13,5 +14,5 @@ internal object IsolatedKoinContext {
         }
     }
 
-    val koin = koinApp.koin
+    val koin: Koin by lazy { koinApp.koin }
 }

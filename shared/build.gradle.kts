@@ -60,6 +60,7 @@ kotlin {
             implementation(libs.androidx.media3.exoplayer)
 
             implementation(libs.androidx.work.runtime.ktx)
+            implementation(libs.koin.android)
         }
 
         iosMain.dependencies {

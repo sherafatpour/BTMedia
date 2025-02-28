@@ -88,12 +88,13 @@ internal class PlaybackStateHandler(
         updatePlayState()
     }
 
-    override fun onTimelineChanged(timeline: Timeline, reason: Int) { // MediaItem 추가시 호출
+    override fun onTimelineChanged(timeline: Timeline, reason: Int) {
         updatePlayState()
     }
 
     private fun updatePlayState() {
         playbackStateManager.playbackState = PlaybackState(
+            mediaId = player.currentMediaItem?.mediaId,
             playingStatus = player.playingStatus,
             currentIndex = player.currentMediaItemIndex,
             hasPrevious = player.hasPreviousMediaItem(),
@@ -103,7 +104,5 @@ internal class PlaybackStateHandler(
             isShuffleOn = player.shuffleModeEnabled,
             repeatMode = RepeatMode.valueOf(player.repeatMode)
         )
-
-        Player.REPEAT_MODE_ALL
     }
 }

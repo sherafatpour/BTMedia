@@ -6,23 +6,20 @@ import dev.egchoi.kmedia.cache.CacheConfig
 import dev.egchoi.kmedia.cache.CacheStatusListener
 import dev.egchoi.kmedia.cache.MusicCacheRepository
 import dev.egchoi.kmedia.cache.NoOpCacheStatusListener
-import dev.egchoi.kmedia.di.IsolatedKoinContext
 import dev.egchoi.kmedia.controller.MediaPlaybackController
+import dev.egchoi.kmedia.di.IsolatedKoinContext
 import dev.egchoi.kmedia.model.PlaybackState
 import dev.egchoi.kmedia.state.PlaybackStateManager
-import dev.egchoi.kmedia.util.Platform
-import dev.egchoi.kmedia.util.getPlatform
-import kotlinx.coroutines.flow.Flow
-import org.koin.dsl.bind
-import org.koin.dsl.module
+import kotlinx.coroutines.flow.StateFlow
+import org.koin.core.module.Module
 
 
 class KMedia private constructor(
     internal val context: Any, // Context for Android
 ) {
-    val player: MediaPlaybackController by IsolatedKoinContext.koin.inject()
-    val cache: MusicCacheRepository by IsolatedKoinContext.koin.inject()
-    val playbackState: Flow<PlaybackState> = PlaybackStateManager.flow
+    val player: MediaPlaybackController by lazy { IsolatedKoinContext.koin.inject<MediaPlaybackController>().value }
+    val cache: MusicCacheRepository by lazy { IsolatedKoinContext.koin.inject<MusicCacheRepository>().value }
+    val playbackState: StateFlow<PlaybackState> = PlaybackStateManager.flow
 
     class Builder {
         private var cacheEnabled: Boolean = false
@@ -47,14 +44,12 @@ class KMedia private constructor(
             )
 
             IsolatedKoinContext.init(
-                module {
-                    if (getPlatform() == Platform.Android) {
-                        single { context }
-                    }
-                    single { cacheSettings }
-                    single { analyticsListener ?: NoOpPlaybackAnalyticsListener() } bind PlaybackAnalyticsListener::class
-                    single { cacheStatusListener ?: NoOpCacheStatusListener() } bind CacheStatusListener::class
-                }
+                kmediaModule(
+                    context,
+                    cacheSettings,
+                    analyticsListener ?: NoOpPlaybackAnalyticsListener(),
+                    cacheStatusListener ?: NoOpCacheStatusListener()
+                )
             )
 
             return KMedia(
@@ -67,3 +62,10 @@ class KMedia private constructor(
         fun builder() = Builder()
     }
 }
+
+expect fun kmediaModule(
+    context: Any,
+    cacheConfig: CacheConfig,
+    playbackAnalyticsListener: PlaybackAnalyticsListener,
+    cacheStatusListener: CacheStatusListener
+): Module

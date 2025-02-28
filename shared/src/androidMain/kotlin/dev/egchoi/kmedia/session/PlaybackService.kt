@@ -35,7 +35,7 @@ class PlaybackService : MediaLibraryService() {
     private val playbackAnalyticsEventListener: PlaybackAnalyticsEventListener by IsolatedKoinContext.koin.inject()
     private val customLayoutUpdateListener: CustomLayoutUpdateListener by IsolatedKoinContext.koin.inject()
     private val sessionCallback: LibrarySessionCallback by IsolatedKoinContext.koin.inject()
-    private val sessionActivity: PendingIntent by IsolatedKoinContext.koin.inject()
+//    private val sessionActivity: PendingIntent by IsolatedKoinContext.koin.inject()
 
     private fun createPlayer(): ExoPlayer {
         val audioAttributes = AudioAttributes.Builder()
@@ -67,7 +67,7 @@ class PlaybackService : MediaLibraryService() {
         super.onCreate()
         session = MediaLibrarySession
             .Builder(this, player!!, sessionCallback)
-            .setSessionActivity(sessionActivity)
+//            .setSessionActivity(sessionActivity)
             .build()
 
         player?.let {
