@@ -42,7 +42,7 @@ internal actual class PlatformMediaPlaybackController(
             return controllerDeferred
         }
 
-    override fun setPosition(positionMs: Long) = executeAfterPrepare { controller ->
+    override fun seekTo(positionMs: Long) = executeAfterPrepare { controller ->
         controller.seekTo(positionMs)
     }
 
@@ -74,7 +74,7 @@ internal actual class PlatformMediaPlaybackController(
         controller.moveMediaItem(currentIndex, newIndex)
     }
 
-    override fun seekTo(musicIndex: Int) = executeAfterPrepare { controller ->
+    override fun skipTo(musicIndex: Int) = executeAfterPrepare { controller ->
         controller.seekToDefaultPosition(musicIndex)
     }
 

@@ -223,18 +223,18 @@ internal actual class PlatformMediaPlaybackController(
 
     override fun play() = playerStateManager.play()
     override fun pause() = playerStateManager.pause()
-    override fun setPosition(positionMs: Long) = playerStateManager.setPosition(positionMs)
+    override fun seekTo(positionMs: Long) = playerStateManager.setPosition(positionMs)
     override fun setSpeed(speed: Float) = playerStateManager.setSpeed(speed)
 
     override fun previous() {
         val currentPlayingTime = playerStateManager.getCurrentPosition()
 
         when {
-            currentPlayingTime > 5 -> setPosition(0)
+            currentPlayingTime > 5 -> seekTo(0)
             else -> playlistManager.getPreviousIndex()?.let {
                 playlistManager.setCurrentIndex(it)
                 playlistManager.getCurrentMusic()?.let { music -> setMusic(music) }
-            } ?: setPosition(0)
+            } ?: seekTo(0)
         }
     }
 
@@ -261,7 +261,7 @@ internal actual class PlatformMediaPlaybackController(
         updatePlaybackState()
     }
 
-    override fun seekTo(musicIndex: Int) {
+    override fun skipTo(musicIndex: Int) {
         if (musicIndex != playlistManager.currentIndex) {
             playlistManager.setCurrentIndex(musicIndex)
             playlistManager.getCurrentMusic()?.let { setMusic(it) }
@@ -363,6 +363,6 @@ private fun PlatformMediaPlaybackController.getMediaControlHandler(): MediaComma
     }
 
     override fun onSeek(positionMs: Long) {
-        setPosition(positionMs)
+        seekTo(positionMs)
     }
 }

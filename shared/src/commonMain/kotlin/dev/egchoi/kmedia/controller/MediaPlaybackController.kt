@@ -4,7 +4,7 @@ import dev.egchoi.kmedia.model.Music
 import dev.egchoi.kmedia.model.RepeatMode
 
 interface MediaPlaybackController {
-    fun setPosition(positionMs: Long)
+    fun seekTo(positionMs: Long)
 
     fun setRepeatMode(repeatMode: RepeatMode)
 
@@ -20,7 +20,7 @@ interface MediaPlaybackController {
 
     fun moveMediaItem(currentIndex: Int, newIndex: Int)
 
-    fun seekTo(musicIndex: Int)
+    fun skipTo(musicIndex: Int)
 
     fun setSpeed(speed: Float)
 
