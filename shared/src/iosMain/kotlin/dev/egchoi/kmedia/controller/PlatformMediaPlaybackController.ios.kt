@@ -2,10 +2,9 @@
 
 package dev.egchoi.kmedia.controller
 
-import com.ccc.ncs.analytics.AnalyticsHelper
-import com.ccc.ncs.domain.repository.MusicRepository
-import dev.egchoi.kmedia.analytics.AnalyticsHelper
+import dev.egchoi.kmedia.analytics.PlaybackAnalyticsListener
 import dev.egchoi.kmedia.analytics.PlaybackAnalyticsManager
+import dev.egchoi.kmedia.cache.CacheStatusListener
 import dev.egchoi.kmedia.cache.CachingMediaFileLoader
 import dev.egchoi.kmedia.cache.MusicCacheRepository
 import dev.egchoi.kmedia.controller.controlcenter.ControlCenterManager
@@ -13,11 +12,9 @@ import dev.egchoi.kmedia.controller.controlcenter.MediaCommandCenter
 import dev.egchoi.kmedia.controller.controlcenter.MediaCommandHandler
 import dev.egchoi.kmedia.controller.controlcenter.MediaInfoCenter
 import dev.egchoi.kmedia.model.Music
-import dev.egchoi.kmedia.model.MusicStatus
 import dev.egchoi.kmedia.model.PlaybackState
 import dev.egchoi.kmedia.model.PlayingStatus
 import dev.egchoi.kmedia.model.RepeatMode
-import dev.egchoi.kmedia.model.playingUrl
 import dev.egchoi.kmedia.session.PlaybackStateObserverManager
 import dev.egchoi.kmedia.state.PlaybackStateManager
 import io.github.aakira.napier.Napier
@@ -35,17 +32,16 @@ import platform.AVFoundation.AVURLAssetPreferPreciseDurationAndTimingKey
 import platform.AVFoundation.currentItem
 import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.Foundation.NSURL
-import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual class PlatformMediaPlaybackController(
     private val playbackStateManager: PlaybackStateManager,
     private val cachingLoader: CachingMediaFileLoader,
-    private val musicRepository: MusicRepository,
     private val cacheRepository: MusicCacheRepository,
-    private val analyticsHelper: AnalyticsHelper
-) : MediaPlaybackController {
-    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val analyticsListener: PlaybackAnalyticsListener,
+    private val cacheStatusListener: CacheStatusListener
+    ) : MediaPlaybackController {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val playerStateManager = IosPlayerStateManager(scope)
     private val playlistManager = PlaylistManager()
@@ -67,8 +63,7 @@ internal actual class PlatformMediaPlaybackController(
 
     private val analyticsManager = PlaybackAnalyticsManager(
         player = playerStateManager.player,
-        analyticsHelper = analyticsHelper,
-        coroutineScope = scope
+        analyticsHelper = analyticsListener
     )
 
     private var isLoading = false
@@ -115,7 +110,7 @@ internal actual class PlatformMediaPlaybackController(
     }
 
     private suspend fun playMusic(music: Music, playImmediately: Boolean) {
-        val nsUrl = NSURL(string = music.playingUrl)
+        val nsUrl = NSURL(string = music.uri)
         val streamingAsset = createStreamingAsset(nsUrl)
 
         if (!cacheRepository.enableCache.first()) {
@@ -138,6 +133,7 @@ internal actual class PlatformMediaPlaybackController(
     ) {
         cachingLoader.loadFileWithCaching(
             url = nsUrl,
+            musicId = music.id,
             onCompleteCaching = { handleCachingComplete(music) }
         ) { asset ->
             handleCachingResult(asset, streamingAsset, music, playImmediately)
@@ -165,7 +161,7 @@ internal actual class PlatformMediaPlaybackController(
         Napier.d("[${music.title}] cache failed")
         prepareAndPlay(streamingAsset, music, playImmediately)
         scope.launch(Dispatchers.IO) {
-            musicRepository.updateMusicStatus(music.id, MusicStatus.None)
+            cacheStatusListener.onCacheStatusChanged(music.id, CacheStatusListener.CacheStatus.NONE)
         }
     }
 
@@ -173,7 +169,7 @@ internal actual class PlatformMediaPlaybackController(
         music: Music
     ) {
         scope.launch(Dispatchers.IO) {
-            musicRepository.updateMusicStatus(music.id, MusicStatus.FullyCached)
+            cacheStatusListener.onCacheStatusChanged(music.id, CacheStatusListener.CacheStatus.FULLY_CACHED)
         }
     }
 
@@ -204,7 +200,7 @@ internal actual class PlatformMediaPlaybackController(
                 // fallback: 다음 곡으로
                 Napier.d("[${music.title}] fallback")
                 scope.launch(Dispatchers.IO) {
-                    musicRepository.updateMusicStatus(music.id, MusicStatus.None)
+                    cacheStatusListener.onCacheStatusChanged(music.id, CacheStatusListener.CacheStatus.NONE)
                 }
                 next()
             }
@@ -303,7 +299,7 @@ internal actual class PlatformMediaPlaybackController(
         updatePlaybackState()
     }
 
-    override fun removeMusics(vararg musicId: Uuid) {
+    override fun removeMusics(vararg musicId: String) {
         var nextMusic: Music? = null
         musicId.forEach { id ->
             nextMusic = playlistManager.removeMusic(id)

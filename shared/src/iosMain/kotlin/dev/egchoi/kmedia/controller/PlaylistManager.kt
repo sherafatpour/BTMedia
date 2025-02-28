@@ -3,7 +3,6 @@ package dev.egchoi.kmedia.controller
 import dev.egchoi.kmedia.model.Music
 import dev.egchoi.kmedia.model.RepeatMode
 import dev.egchoi.kmedia.util.reorder
-import kotlin.uuid.Uuid
 
 // Playlist Manager
 class PlaylistManager {
@@ -39,7 +38,7 @@ class PlaylistManager {
         }
     }
 
-    fun removeMusic(musicId: Uuid): Music? {
+    fun removeMusic(musicId: String): Music? {
         val removeIndex = playlist.indexOfFirst { it.id == musicId }
         if (removeIndex < 0) return null
 

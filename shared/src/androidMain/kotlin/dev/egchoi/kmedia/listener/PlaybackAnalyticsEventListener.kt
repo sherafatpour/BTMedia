@@ -7,12 +7,11 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
-import com.ccc.ncs.analytics.AnalyticsHelper
-import dev.egchoi.kmedia.analytics.logPlaybackTime
+import dev.egchoi.kmedia.analytics.PlaybackAnalyticsListener
 
 @OptIn(UnstableApi::class)
 internal class PlaybackAnalyticsEventListener(
-    private val analyticsHelper: AnalyticsHelper
+    private val analyticsListener: PlaybackAnalyticsListener
 ) : AnalyticsListener {
     var playbackStatsListener: PlaybackStatsListener? = null
 
@@ -29,7 +28,7 @@ internal class PlaybackAnalyticsEventListener(
 
                 playbackStatsListener = PlaybackStatsListener(false) { _, stats ->
                     currentMediaItem?.let { mediaItem ->
-                        analyticsHelper.logPlaybackTime(mediaItem.mediaId, stats.totalPlayTimeMs, duration)
+                        analyticsListener.onPlaybackCompleted(mediaItem.mediaId, stats.totalPlayTimeMs, duration)
                     }
                 }.also {
                     player.addAnalyticsListener(it)

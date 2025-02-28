@@ -27,7 +27,6 @@ import platform.MediaPlayer.MPNowPlayingInfoPropertyElapsedPlaybackTime
 import platform.MediaPlayer.MPNowPlayingInfoPropertyIsLiveStream
 import platform.MediaPlayer.MPNowPlayingInfoPropertyPlaybackRate
 import platform.UIKit.UIImage
-import kotlin.uuid.Uuid
 
 internal class MediaInfoCenter(
     private val player: AVPlayer,
@@ -50,7 +49,9 @@ internal class MediaInfoCenter(
         if (isNewMusic(music.id, nowPlayingInfo)) {
             nowPlayingInfo.apply {
                 put(MPMediaItemPropertyPersistentID, music.id.hashCode())
-                setArtwork(music.coverUrl)
+                music.coverUrl?.let {
+                    setArtwork(it)
+                }
                 put(MPMediaItemPropertyTitle, music.title)
                 put(MPMediaItemPropertyArtist, music.artist)
                 put(MPNowPlayingInfoPropertyDefaultPlaybackRate, 1.0f)
@@ -95,7 +96,7 @@ internal class MediaInfoCenter(
         }
     }
 
-    private fun isNewMusic(musicId: Uuid, nowPlayingInfo: MutableMap<Any?, Any?>): Boolean {
+    private fun isNewMusic(musicId: String, nowPlayingInfo: MutableMap<Any?, Any?>): Boolean {
         val updateMusicId = musicId.hashCode()
         val currentMusicId = nowPlayingInfo[MPMediaItemPropertyPersistentID]
         return currentMusicId != updateMusicId

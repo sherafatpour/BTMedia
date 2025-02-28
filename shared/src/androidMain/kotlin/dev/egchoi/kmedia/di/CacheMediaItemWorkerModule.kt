@@ -8,7 +8,7 @@ val cacheMediaItemWorkerModule = module {
     worker { params ->
         CacheMediaItemWorker(
             cacheManager = get(),
-            musicRepository = get(),
+            cacheStatusListener = get(),
             applicationContext = get(),
             workerParameters = params.get()
         )

@@ -1,6 +1,5 @@
 package dev.egchoi.kmedia.analytics
 
-import com.ccc.ncs.analytics.AnalyticsHelper
 import dev.egchoi.kmedia.model.Music
 import dev.egchoi.kmedia.util.toMilliSeconds
 import io.github.aakira.napier.Napier
@@ -19,8 +18,7 @@ import platform.darwin.NSEC_PER_SEC
 
 internal class PlaybackAnalyticsManager(
     private val player: AVPlayer,
-    private val analyticsHelper: AnalyticsHelper,
-    private val coroutineScope: CoroutineScope
+    private val analyticsHelper: PlaybackAnalyticsListener
 ) {
     private var currentMusic: Music? = null
     private var periodicTimeObserver: Any? = null
@@ -72,7 +70,7 @@ internal class PlaybackAnalyticsManager(
 
         if (accumulatedPlayTime > 0) {
             Napier.d("Logging playback time: ${accumulatedPlayTime}ms for ${music.id}, duration: $currentDuration")
-            analyticsHelper.logPlaybackTime(music.id.toString(), accumulatedPlayTime, currentDuration)
+            analyticsHelper.onPlaybackCompleted(music.id, accumulatedPlayTime, currentDuration)
         }
     }
 

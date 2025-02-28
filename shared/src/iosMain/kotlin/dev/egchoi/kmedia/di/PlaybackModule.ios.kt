@@ -1,7 +1,7 @@
 package dev.egchoi.kmedia.di
 
-import com.ccc.ncs.domain.MediaPlaybackController
-import com.ccc.ncs.domain.repository.MusicCacheRepository
+import dev.egchoi.kmedia.cache.MusicCacheRepository
+import dev.egchoi.kmedia.controller.MediaPlaybackController
 import dev.egchoi.kmedia.controller.PlatformMediaPlaybackController
 import dev.egchoi.kmedia.repository.PlatformMusicCacheRepository
 import org.koin.core.module.Module

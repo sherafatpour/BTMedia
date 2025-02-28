@@ -7,24 +7,21 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import dev.egchoi.kmedia.model.MusicStatus
 import dev.egchoi.kmedia.cache.CacheManager
 import dev.egchoi.kmedia.cache.CacheMediaItemWorker
+import dev.egchoi.kmedia.cache.CacheStatusListener
 import dev.egchoi.kmedia.cache.MusicCacheRepository
 import dev.egchoi.kmedia.controller.PlatformMediaPlaybackController
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlin.uuid.Uuid
-import com.ccc.ncs.domain.repository.MusicRepository
 
 internal actual class PlatformMusicCacheRepository(
     private val cacheManager: CacheManager,
-    private val musicRepository: MusicRepository,
+    private val cacheStatusListener: CacheStatusListener,
     private val applicationContext: Context,
     private val playbackController: PlatformMediaPlaybackController
 ) : MusicCacheRepository {
@@ -66,20 +63,17 @@ internal actual class PlatformMusicCacheRepository(
 
     override suspend fun clearCache() {
         cacheManager.cleanCache()
-        musicRepository.getMusicsByStatus(
-            status = listOf(MusicStatus.FullyCached, MusicStatus.PartiallyCached, MusicStatus.Downloading)
-        ).first()
-            .forEach { cachedMusic ->
-                musicRepository.updateMusicStatus(cachedMusic.id, MusicStatus.None)
-            }
+        cacheManager.keys.forEach {
+            cacheStatusListener.onCacheStatusChanged(it, CacheStatusListener.CacheStatus.NONE)
+        }
     }
 
-    override suspend fun checkMusicCached(key: Uuid) = cacheManager.checkItemCached(key.toString()) ?: false
+    override suspend fun checkMusicCached(key: String) = cacheManager.checkItemCached(key) ?: false
 
-    override suspend fun preCacheMusic(url: String, key: Uuid) {
+    override suspend fun preCacheMusic(url: String, key: String) {
         val workData = workDataOf(
             CacheMediaItemWorker.KEY_URL to url,
-            CacheMediaItemWorker.KEY_CACHE_KEY to key.toString()
+            CacheMediaItemWorker.KEY_CACHE_KEY to key
         )
 
         val workRequest = OneTimeWorkRequestBuilder<CacheMediaItemWorker>()
@@ -100,10 +94,10 @@ internal actual class PlatformMusicCacheRepository(
             )
     }
 
-    override suspend fun removeCachedMusic(vararg keys: Uuid) {
+    override suspend fun removeCachedMusic(vararg keys: String) {
         keys.forEach { key ->
-            cacheManager.removeFile(key.toString())
-            musicRepository.updateMusicStatus(key, MusicStatus.None)
+            cacheManager.removeFile(key)
+            cacheStatusListener.onCacheStatusChanged(key, CacheStatusListener.CacheStatus.NONE)
         }
     }
 }

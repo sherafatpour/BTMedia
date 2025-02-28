@@ -7,9 +7,9 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import dev.egchoi.kmedia.model.Music
 import dev.egchoi.kmedia.model.RepeatMode
-import dev.egchoi.kmedia.util.getMediaItemIndex
 import dev.egchoi.kmedia.session.PlaybackService
 import dev.egchoi.kmedia.util.asMediaItem
+import dev.egchoi.kmedia.util.getMediaItemIndex
 import dev.egchoi.kmedia.util.mediaItems
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -17,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.guava.asDeferred
 import kotlinx.coroutines.launch
-import kotlin.uuid.Uuid
 
 internal actual class PlatformMediaPlaybackController(
     private val context: Context,
@@ -103,9 +102,9 @@ internal actual class PlatformMediaPlaybackController(
         controller.addMediaItems(musics.map { it.asMediaItem() })
     }
 
-    override fun removeMusics(vararg musicId: Uuid) = executeAfterPrepare { controller ->
+    override fun removeMusics(vararg musicId: String) = executeAfterPrepare { controller ->
         musicId.forEach { id ->
-            controller.mediaItems.find { it.mediaId == id.toString() }?.let { mediaItem ->
+            controller.mediaItems.find { it.mediaId == id }?.let { mediaItem ->
                 controller.getMediaItemIndex(mediaItem)?.let { index ->
                     controller.removeMediaItem(index)
                 }

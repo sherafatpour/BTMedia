@@ -1,8 +1,6 @@
 package dev.egchoi.kmedia.cache
 
 import kotlinx.coroutines.flow.Flow
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 interface MusicCacheRepository {
     val maxSizeMb: Flow<Int>
@@ -16,10 +14,9 @@ interface MusicCacheRepository {
 
     suspend fun clearCache()
 
-    @OptIn(ExperimentalUuidApi::class)
-    suspend fun removeCachedMusic(vararg keys: Uuid)
+    suspend fun removeCachedMusic(vararg keys: String)
 
-    suspend fun preCacheMusic(url: String, key: Uuid)
+    suspend fun preCacheMusic(url: String, key: String)
 
-    suspend fun checkMusicCached(key: Uuid): Boolean
+    suspend fun checkMusicCached(key: String): Boolean
 }

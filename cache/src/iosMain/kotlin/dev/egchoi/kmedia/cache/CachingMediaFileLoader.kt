@@ -8,6 +8,7 @@ import platform.darwin.NSObject
 
 data class DownloadInfo(
     val url: String,
+    val musicId: String? = null,  // 추가된 musicId 필드
     val task: AVAssetDownloadTask,
     val onFail: (() -> Unit)?,
     val onComplete: () -> Unit
@@ -22,6 +23,7 @@ class CachingMediaFileLoader(
     private val downloadTasks = mutableMapOf<Long, DownloadInfo>()
     private val defaults = NSUserDefaults.standardUserDefaults
     private val lastAccessKey = "dev.egchoi.kmedia.lastAccess"
+    private val urlToIdMapKey = "dev.egchoi.kmedia.urlToIdMap"
 
     init {
         session = createDownloadSession()
@@ -48,10 +50,49 @@ class CachingMediaFileLoader(
             }
         } else {
             downloadTasks[taskId]?.let { downloadInfo ->
+                // ID가 있으면 매핑 저장
+                downloadInfo.musicId?.let { musicId ->
+                    saveUrlToIdMapping(downloadInfo.url, musicId)
+                }
                 downloadInfo.onComplete()
             }
         }
         downloadTasks.remove(taskId)
+    }
+
+    // URL과 ID 매핑 저장
+    private fun saveUrlToIdMapping(url: String, id: String) {
+        val map = getUrlToIdMap().toMutableMap()
+        map[url] = id
+        defaults.setObject(map, urlToIdMapKey)
+    }
+
+    // URL과 ID 매핑 가져오기
+    private fun getUrlToIdMap(): Map<String, String> {
+        return defaults.dictionaryForKey(urlToIdMapKey) as? Map<String, String> ?: mapOf()
+    }
+
+    // ID로 URL 찾기
+    fun getUrlById(id: String): String? {
+        return getUrlToIdMap().entries.find { it.value == id }?.key
+    }
+
+    // ID에 해당하는 캐시 파일이 있는지 확인
+    fun hasCachedFileById(id: String): Boolean {
+        return getUrlById(id)?.let { url ->
+            hasCachedFile(NSURL(string = url))
+        } ?: false
+    }
+
+    // ID로 캐시 파일 제거
+    fun removeCacheById(id: String) {
+        getUrlById(id)?.let { url ->
+            removeCache(NSURL(string = url))
+            // 매핑에서도 제거
+            val map = getUrlToIdMap().toMutableMap()
+            map.entries.removeAll { it.value == id }
+            defaults.setObject(map, urlToIdMapKey)
+        }
     }
 
     private fun createDownloadDelegate() = object : NSObject(), AVAssetDownloadDelegateProtocol {
@@ -94,6 +135,7 @@ class CachingMediaFileLoader(
 
     fun cacheFile(
         url: NSURL,
+        musicId: String,
         onCompletion: () -> Unit,
         onFail: () -> Unit
     ) {
@@ -111,6 +153,9 @@ class CachingMediaFileLoader(
 
         if (hasCachedFile(url)) {
             updateLastAccess(url)
+            url.absoluteString?.let { urlString ->
+                saveUrlToIdMapping(urlString, musicId)
+            }
             onCompletion()
             return
         }
@@ -138,7 +183,13 @@ class CachingMediaFileLoader(
         downloadTask?.let { task ->
             val taskId = task.taskIdentifier.toLong()
             url.absoluteString?.let { absoluteString ->
-                downloadTasks[taskId] = DownloadInfo(absoluteString, task, onFail, onCompletion)
+                downloadTasks[taskId] = DownloadInfo(
+                    url = absoluteString,
+                    musicId = musicId,
+                    task = task,
+                    onFail = onFail,
+                    onComplete = onCompletion
+                )
             }
             task.resume()
         } ?: run {
@@ -148,6 +199,7 @@ class CachingMediaFileLoader(
 
     fun loadFileWithCaching(
         url: NSURL,
+        musicId: String,
         onCompleteCaching: () -> Unit,
         onGotAsset: (AVURLAsset?) -> Unit,
     ) {
@@ -157,7 +209,6 @@ class CachingMediaFileLoader(
                     AVURLAssetPreferPreciseDurationAndTimingKey to true
                 )
             )
-            Napier.d("onGotAsset: cache disabled", tag="loadFileWithCaching")
             onGotAsset(streamingAsset)
             return
         }
@@ -167,12 +218,14 @@ class CachingMediaFileLoader(
 
         if (hasCachedFile(url)) {
             updateLastAccess(url)
+            url.absoluteString?.let { urlString ->
+                saveUrlToIdMapping(urlString, musicId)
+            }
             val cachedAsset = AVURLAsset(
                 cacheFileURL, mapOf(
                     AVURLAssetPreferPreciseDurationAndTimingKey to true
                 )
             )
-            Napier.d("onGotAsset: already cached", tag="loadFileWithCaching")
             onCompleteCaching()
             onGotAsset(cachedAsset)
             return
@@ -205,6 +258,7 @@ class CachingMediaFileLoader(
             url.absoluteString?.let { absoluteString ->
                 downloadTasks[taskId] = DownloadInfo(
                     url = absoluteString,
+                    musicId = musicId,  // musicId 추가
                     task = task,
                     onFail = null,
                     onComplete = onCompleteCaching
@@ -290,11 +344,28 @@ class CachingMediaFileLoader(
         }
     }
 
+    // ID로 다운로드 취소
+    fun cancelDownloadById(id: String) {
+        downloadTasks.entries
+            .firstOrNull { it.value.musicId == id }
+            ?.let { entry ->
+                entry.value.task.cancel()
+                downloadTasks.remove(entry.key)
+            }
+    }
+
     fun removeCache(url: NSURL) {
         getCacheFileURL(url)?.let { cacheUrl ->
             try {
                 if (fileManager.fileExistsAtPath(cacheUrl.path!!)) {
                     fileManager.removeItemAtURL(cacheUrl, error = null)
+                }
+
+                // URL-ID 매핑에서도 제거
+                url.absoluteString?.let { urlString ->
+                    val map = getUrlToIdMap().toMutableMap()
+                    map.remove(urlString)
+                    defaults.setObject(map, urlToIdMapKey)
                 }
             } catch (e: Exception) {
                 Napier.e("Failed to remove cache file", e)
@@ -311,6 +382,10 @@ class CachingMediaFileLoader(
     fun cleanup() {
         downloadTasks.values.forEach { it.task.cancel() }
         downloadTasks.clear()
+
+        // URL-ID 매핑 초기화
+        defaults.setObject(mapOf<String, String>(), urlToIdMapKey)
+
         if (cacheDirectory?.path != null) {
             try {
                 fileManager.removeItemAtPath(cacheDirectory?.path!!, null)
@@ -318,5 +393,10 @@ class CachingMediaFileLoader(
                 Napier.e("Failed to cleanup cache directory", e)
             }
         }
+    }
+
+    // ID에 해당하는 모든 캐시된 ID 가져오기
+    fun getAllCachedIds(): List<String> {
+        return getUrlToIdMap().values.distinct()
     }
 }

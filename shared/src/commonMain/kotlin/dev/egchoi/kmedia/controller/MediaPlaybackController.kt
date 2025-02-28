@@ -2,7 +2,6 @@ package dev.egchoi.kmedia.controller
 
 import dev.egchoi.kmedia.model.Music
 import dev.egchoi.kmedia.model.RepeatMode
-import kotlin.uuid.Uuid
 
 interface MediaPlaybackController {
     fun setPosition(positionMs: Long)
@@ -33,7 +32,7 @@ interface MediaPlaybackController {
 
     fun appendMusics(musics: List<Music>)
 
-    fun removeMusics(vararg musicId: Uuid)
+    fun removeMusics(vararg musicId: String)
 
     fun updateCurrentPlaylistMusic(music: Music)
 

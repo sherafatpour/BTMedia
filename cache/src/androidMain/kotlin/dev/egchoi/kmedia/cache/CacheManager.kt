@@ -62,6 +62,9 @@ class CacheManager(
     val usedCacheBytes: Long?
         get() = cache?.cacheSpace
 
+    val keys: Set<String>
+        get() = cache?.keys ?: setOf()
+
     fun cleanCache() {
         clearCacheListener()
         SimpleCache.delete(cacheStorage, null)

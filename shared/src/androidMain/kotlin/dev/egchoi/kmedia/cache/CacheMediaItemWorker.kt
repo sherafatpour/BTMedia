@@ -3,15 +3,12 @@ package dev.egchoi.kmedia.cache
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.ccc.ncs.domain.repository.MusicRepository
-import dev.egchoi.kmedia.model.MusicStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.uuid.Uuid
 
 class CacheMediaItemWorker(
     private val cacheManager: CacheManager,
-    private val musicRepository: MusicRepository,
+    private val cacheStatusListener: CacheStatusListener,
     applicationContext: Context,
     workerParameters: WorkerParameters
 ): CoroutineWorker(applicationContext, workerParameters) {
@@ -24,10 +21,10 @@ class CacheMediaItemWorker(
             withContext(Dispatchers.Main) {
                 cacheManager.preCacheMedia(url, key)
             }
-            musicRepository.updateMusicStatus(Uuid.parse(key), MusicStatus.FullyCached)
+            cacheStatusListener.onCacheStatusChanged(key, CacheStatusListener.CacheStatus.FULLY_CACHED)
             return Result.success()
         } catch (e: Exception) {
-            musicRepository.updateMusicStatus(Uuid.parse(key), MusicStatus.None)
+            cacheStatusListener.onCacheStatusChanged(key, CacheStatusListener.CacheStatus.NONE)
             return Result.failure()
         }
     }
