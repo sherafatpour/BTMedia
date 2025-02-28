@@ -1,0 +1,373 @@
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalForeignApi::class)
+
+package dev.egchoi.kmedia.controller
+
+import com.ccc.ncs.analytics.AnalyticsHelper
+import com.ccc.ncs.domain.repository.MusicRepository
+import dev.egchoi.kmedia.analytics.AnalyticsHelper
+import dev.egchoi.kmedia.analytics.PlaybackAnalyticsManager
+import dev.egchoi.kmedia.cache.CachingMediaFileLoader
+import dev.egchoi.kmedia.cache.MusicCacheRepository
+import dev.egchoi.kmedia.controller.controlcenter.ControlCenterManager
+import dev.egchoi.kmedia.controller.controlcenter.MediaCommandCenter
+import dev.egchoi.kmedia.controller.controlcenter.MediaCommandHandler
+import dev.egchoi.kmedia.controller.controlcenter.MediaInfoCenter
+import dev.egchoi.kmedia.model.Music
+import dev.egchoi.kmedia.model.MusicStatus
+import dev.egchoi.kmedia.model.PlaybackState
+import dev.egchoi.kmedia.model.PlayingStatus
+import dev.egchoi.kmedia.model.RepeatMode
+import dev.egchoi.kmedia.model.playingUrl
+import dev.egchoi.kmedia.session.PlaybackStateObserverManager
+import dev.egchoi.kmedia.state.PlaybackStateManager
+import io.github.aakira.napier.Napier
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import platform.AVFoundation.AVKeyValueStatusLoaded
+import platform.AVFoundation.AVPlayerItem
+import platform.AVFoundation.AVURLAsset
+import platform.AVFoundation.AVURLAssetPreferPreciseDurationAndTimingKey
+import platform.AVFoundation.currentItem
+import platform.AVFoundation.replaceCurrentItemWithPlayerItem
+import platform.Foundation.NSURL
+import kotlin.uuid.Uuid
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual class PlatformMediaPlaybackController(
+    private val playbackStateManager: PlaybackStateManager,
+    private val cachingLoader: CachingMediaFileLoader,
+    private val musicRepository: MusicRepository,
+    private val cacheRepository: MusicCacheRepository,
+    private val analyticsHelper: AnalyticsHelper
+) : MediaPlaybackController {
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    private val playerStateManager = IosPlayerStateManager(scope)
+    private val playlistManager = PlaylistManager()
+    private val audioSessionManager = AudioSessionManager()
+    private val eventManager = PlaybackStateObserverManager(
+        player = playerStateManager.player,
+        onPlaybackStateChanged = ::updatePlaybackState,
+        coroutineScope = scope
+    )
+    private val controlCenterManager = ControlCenterManager(
+        commandCenter = MediaCommandCenter(
+            commandHandler = this.getMediaControlHandler()
+        ),
+        infoCenter = MediaInfoCenter(
+            player = playerStateManager.player,
+            coroutineScope = scope
+        )
+    )
+
+    private val analyticsManager = PlaybackAnalyticsManager(
+        player = playerStateManager.player,
+        analyticsHelper = analyticsHelper,
+        coroutineScope = scope
+    )
+
+    private var isLoading = false
+    private var initialized = false
+
+    override fun prepare(musics: List<Music>, index: Int, positionMs: Long) {
+        if (initialized == false) {
+            initController()
+        }
+
+        playlistManager.updatePlaylist(musics, index)
+        playerStateManager.initializePlayer(positionMs)
+        playlistManager.getCurrentMusic()?.let { setMusic(it, false) }
+    }
+
+    override fun playMusics(musics: List<Music>, startIndex: Int) {
+        if (initialized == false) {
+            initController()
+        }
+
+        playlistManager.updatePlaylist(musics, startIndex)
+        playerStateManager.initializePlayer(0)
+        playlistManager.getCurrentMusic()?.let { setMusic(it, true) }
+    }
+
+    private fun setMusic(music: Music, playImmediately: Boolean = true) {
+        scope.launch {
+            prepareMusic()
+            playMusic(music, playImmediately)
+        }
+    }
+
+    private fun prepareMusic() {
+        isLoading = true
+        updatePlaybackState()
+        cleanupCurrentItem()
+    }
+
+    private fun cleanupCurrentItem() {
+        playerStateManager.player.replaceCurrentItemWithPlayerItem(null)
+        playerStateManager.player.currentItem?.let {
+            playerStateManager.cleanup()
+        }
+    }
+
+    private suspend fun playMusic(music: Music, playImmediately: Boolean) {
+        val nsUrl = NSURL(string = music.playingUrl)
+        val streamingAsset = createStreamingAsset(nsUrl)
+
+        if (!cacheRepository.enableCache.first()) {
+            prepareAndPlay(streamingAsset, music, playImmediately)
+            return
+        }
+
+        handleCaching(nsUrl, streamingAsset, music, playImmediately)
+    }
+
+    private fun createStreamingAsset(nsUrl: NSURL) = AVURLAsset(
+        nsUrl, mapOf(AVURLAssetPreferPreciseDurationAndTimingKey to true)
+    )
+
+    private fun handleCaching(
+        nsUrl: NSURL,
+        streamingAsset: AVURLAsset,
+        music: Music,
+        playImmediately: Boolean
+    ) {
+        cachingLoader.loadFileWithCaching(
+            url = nsUrl,
+            onCompleteCaching = { handleCachingComplete(music) }
+        ) { asset ->
+            handleCachingResult(asset, streamingAsset, music, playImmediately)
+        }
+    }
+
+    private fun handleCachingResult(
+        asset: AVURLAsset?,
+        streamingAsset: AVURLAsset,
+        music: Music,
+        playImmediately: Boolean
+    ) {
+        if (asset == null) {
+            handleCachingFailure(streamingAsset, music, playImmediately)
+            return
+        }
+        prepareAndPlay(asset, music, playImmediately)
+    }
+
+    private fun handleCachingFailure(
+        streamingAsset: AVURLAsset,
+        music: Music,
+        playImmediately: Boolean
+    ) {
+        Napier.d("[${music.title}] cache failed")
+        prepareAndPlay(streamingAsset, music, playImmediately)
+        scope.launch(Dispatchers.IO) {
+            musicRepository.updateMusicStatus(music.id, MusicStatus.None)
+        }
+    }
+
+    private fun handleCachingComplete(
+        music: Music
+    ) {
+        scope.launch(Dispatchers.IO) {
+            musicRepository.updateMusicStatus(music.id, MusicStatus.FullyCached)
+        }
+    }
+
+    private fun prepareAndPlay(
+        asset: AVURLAsset,
+        music: Music,
+        playImmediately: Boolean
+    ) {
+        asset.loadValuesAsynchronouslyForKeys(keys = listOf("playable")) {
+            if (asset.statusOfValueForKey("playable", null) == AVKeyValueStatusLoaded) {
+                val newItem = AVPlayerItem(asset)
+
+                playerStateManager.player.replaceCurrentItemWithPlayerItem(newItem)
+                analyticsManager.startTracking(music)
+                updatePlaybackState()
+
+                playerStateManager.setupMusicStatusObserver(
+                    item = newItem,
+                    onReadyToPlay = {
+                        isLoading = false
+                        if (playImmediately) {
+                            playerStateManager.play()
+                        }
+                    },
+                    onPlaybackStateChanged = ::updatePlaybackState
+                )
+            } else {
+                // fallback: 다음 곡으로
+                Napier.d("[${music.title}] fallback")
+                scope.launch(Dispatchers.IO) {
+                    musicRepository.updateMusicStatus(music.id, MusicStatus.None)
+                }
+                next()
+            }
+        }
+    }
+
+    private fun onMusicCompleted() {
+        when (playlistManager.repeatMode) {
+            RepeatMode.REPEAT_MODE_ONE -> {
+                playlistManager.getCurrentMusic()?.let { setMusic(it) }
+            }
+
+            RepeatMode.REPEAT_MODE_ALL, RepeatMode.REPEAT_MODE_OFF -> {
+                playlistManager.getNextIndex()?.let { nextIndex ->
+                    playlistManager.setCurrentIndex(nextIndex)
+                    playlistManager.getCurrentMusic()?.let { setMusic(it) }
+                }
+            }
+        }
+    }
+
+    override fun play() = playerStateManager.play()
+    override fun pause() = playerStateManager.pause()
+    override fun setPosition(positionMs: Long) = playerStateManager.setPosition(positionMs)
+    override fun setSpeed(speed: Float) = playerStateManager.setSpeed(speed)
+
+    override fun previous() {
+        val currentPlayingTime = playerStateManager.getCurrentPosition()
+
+        when {
+            currentPlayingTime > 5 -> setPosition(0)
+            else -> playlistManager.getPreviousIndex()?.let {
+                playlistManager.setCurrentIndex(it)
+                playlistManager.getCurrentMusic()?.let { music -> setMusic(music) }
+            } ?: setPosition(0)
+        }
+    }
+
+    override fun next() {
+        playlistManager.getNextIndex()?.let { nextIndex ->
+
+            playlistManager.setCurrentIndex(nextIndex)
+            playlistManager.getCurrentMusic()?.let { setMusic(it) }
+        }
+    }
+
+    override fun setRepeatMode(repeatMode: RepeatMode) {
+        playlistManager.setRepeatMode(repeatMode)
+        updatePlaybackState()
+    }
+
+    override fun setShuffleMode(isOn: Boolean) {
+        playlistManager.setShuffleMode(isOn)
+        updatePlaybackState()
+    }
+
+    override fun moveMediaItem(currentIndex: Int, newIndex: Int) {
+        playlistManager.moveMediaItem(currentIndex, newIndex)
+        updatePlaybackState()
+    }
+
+    override fun seekTo(musicIndex: Int) {
+        if (musicIndex != playlistManager.currentIndex) {
+            playlistManager.setCurrentIndex(musicIndex)
+            playlistManager.getCurrentMusic()?.let { setMusic(it) }
+        }
+    }
+
+    override fun stop() {
+        analyticsManager.stopTracking()
+        releaseController()
+        updatePlaybackState()
+    }
+
+    private fun initController() {
+        audioSessionManager.setupAudioSession()
+        controlCenterManager.start()
+        eventManager.startObserving()
+        playerStateManager.setupPlaybackTimeObserver { updatePlaybackState() }
+        playerStateManager.setupMusicCompleteTimeObserver(
+            onMusicCompleted = ::onMusicCompleted
+        )
+        initialized = true
+    }
+
+    private fun releaseController() {
+        playerStateManager.stop()
+        playlistManager.clear()
+        eventManager.stopObserving()
+        controlCenterManager.release()
+        initialized = false
+    }
+
+    override fun appendMusics(musics: List<Music>) {
+        playlistManager.appendMusics(musics)
+        updatePlaybackState()
+    }
+
+    override fun removeMusics(vararg musicId: Uuid) {
+        var nextMusic: Music? = null
+        musicId.forEach { id ->
+            nextMusic = playlistManager.removeMusic(id)
+        }
+        if (nextMusic != null) {
+            setMusic(nextMusic!!)
+        } else {
+            stop()
+        }
+        updatePlaybackState()
+    }
+
+    override fun updateCurrentPlaylistMusic(music: Music) {
+        // Implementation needed for local music download
+    }
+
+    private fun updatePlaybackState() {
+        val currentSeconds = playerStateManager.getCurrentPosition()
+        val durationSeconds = playerStateManager.getDuration()
+        val state = PlaybackState(
+            playingStatus = if (isLoading) PlayingStatus.BUFFERING else playerStateManager.currentPlaybackStatus,
+            currentIndex = playlistManager.currentIndex,
+            hasPrevious = playlistManager.hasPrevious(),
+            hasNext = playlistManager.hasNext(),
+            position = currentSeconds * 1000,
+            duration = durationSeconds * 1000,
+            isShuffleOn = playlistManager.isShuffleOn,
+            repeatMode = playlistManager.repeatMode
+        )
+        playbackStateManager.playbackState = state
+
+        // 현재 재생 중인 곡의 정보로 제어 센터 업데이트
+        playlistManager.getCurrentMusic()?.let { music ->
+            controlCenterManager.updatePlaybackState(music, state)
+        }
+    }
+
+//    override fun fastForward() {
+//        // Implementation needed
+//    }
+//
+//    override fun rewind() {
+//        // Implementation needed
+//    }
+}
+
+private fun PlatformMediaPlaybackController.getMediaControlHandler(): MediaCommandHandler = object : MediaCommandHandler {
+    override fun onPlay() {
+        play()
+    }
+
+    override fun onPause() {
+        pause()
+    }
+
+    override fun onNext() {
+        next()
+    }
+
+    override fun onPrevious() {
+        previous()
+    }
+
+    override fun onSeek(positionMs: Long) {
+        setPosition(positionMs)
+    }
+}
