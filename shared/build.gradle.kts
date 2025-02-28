@@ -44,9 +44,6 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.napier)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.datastore.preferences)
-            implementation(libs.multiplatform.settings)
-            implementation(libs.multiplatform.settings.coroutines)
         }
 
         androidMain.dependencies {
