@@ -33,13 +33,13 @@ import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.Foundation.NSURL
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual class PlatformMediaPlaybackController(
+internal class PlatformMediaPlaybackController(
     private val playbackStateManager: PlaybackStateManager,
     private val cachingLoader: CachingMediaFileLoader,
     private val cacheRepository: MusicCacheRepository,
     private val analyticsListener: PlaybackAnalyticsListener,
-    private val cacheStatusListener: CacheStatusListener
-    ) : MediaPlaybackController {
+    private val cacheStatusListener: CacheStatusListener,
+) : MediaPlaybackController {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val playerStateManager = IosPlayerStateManager(scope)
@@ -128,7 +128,7 @@ internal actual class PlatformMediaPlaybackController(
         nsUrl: NSURL,
         streamingAsset: AVURLAsset,
         music: Music,
-        playImmediately: Boolean
+        playImmediately: Boolean,
     ) {
         cachingLoader.loadFileWithCaching(
             url = nsUrl,
@@ -143,7 +143,7 @@ internal actual class PlatformMediaPlaybackController(
         asset: AVURLAsset?,
         streamingAsset: AVURLAsset,
         music: Music,
-        playImmediately: Boolean
+        playImmediately: Boolean,
     ) {
         if (asset == null) {
             handleCachingFailure(streamingAsset, music, playImmediately)
@@ -155,7 +155,7 @@ internal actual class PlatformMediaPlaybackController(
     private fun handleCachingFailure(
         streamingAsset: AVURLAsset,
         music: Music,
-        playImmediately: Boolean
+        playImmediately: Boolean,
     ) {
         Napier.d("[${music.title}] cache failed")
         prepareAndPlay(streamingAsset, music, playImmediately)
@@ -165,7 +165,7 @@ internal actual class PlatformMediaPlaybackController(
     }
 
     private fun handleCachingComplete(
-        music: Music
+        music: Music,
     ) {
         scope.launch(Dispatchers.IO) {
             cacheStatusListener.onCacheStatusChanged(music.id, CacheStatusListener.CacheStatus.FULLY_CACHED)
@@ -175,7 +175,7 @@ internal actual class PlatformMediaPlaybackController(
     private fun prepareAndPlay(
         asset: AVURLAsset,
         music: Music,
-        playImmediately: Boolean
+        playImmediately: Boolean,
     ) {
         asset.loadValuesAsynchronouslyForKeys(keys = listOf("playable")) {
             if (asset.statusOfValueForKey("playable", null) == AVKeyValueStatusLoaded) {

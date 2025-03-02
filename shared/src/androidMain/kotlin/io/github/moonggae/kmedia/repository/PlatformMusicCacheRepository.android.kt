@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 
-internal actual class PlatformMusicCacheRepository(
+internal class PlatformMusicCacheRepository(
     private val cacheManager: CacheManager,
     private val cacheStatusListener: CacheStatusListener,
     private val applicationContext: Context

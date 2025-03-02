@@ -1,3 +1,0 @@
-package io.github.moonggae.kmedia.controller
-
-internal expect class PlatformMediaPlaybackController: MediaPlaybackController

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import platform.Foundation.NSURL
 
-internal actual class PlatformMusicCacheRepository(
+internal class PlatformMusicCacheRepository(
     private val fileLoader: CachingMediaFileLoader,
     private val cacheStatusListener: CacheStatusListener,
     private val cacheSettings: CacheConfig,

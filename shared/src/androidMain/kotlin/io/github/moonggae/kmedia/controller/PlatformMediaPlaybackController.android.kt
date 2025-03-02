@@ -17,7 +17,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.guava.asDeferred
 import kotlinx.coroutines.launch
 
-internal actual class PlatformMediaPlaybackController(
+internal class PlatformMediaPlaybackController(
     private val context: Context,
 ) : MediaPlaybackController {
     private var controllerDeferred: Deferred<MediaController> = newControllerAsync()
