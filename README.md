@@ -86,7 +86,7 @@ Add the following to your `Info.plist`:
 ```xml
 <key>BGTaskSchedulerPermittedIdentifiers</key>
 <array>
-    <string>com.ccc.ncs.assetDownloadSession</string>
+    <string>io.github.moonggae.kmedia.assetDownloadSession</string>
 </array>
 <key>UIBackgroundModes</key>
 <array>
