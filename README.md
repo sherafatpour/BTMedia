@@ -1,4 +1,6 @@
 # KMedia - KMP Music Player Library
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.moonggae/kmedia)](https://mvnrepository.com/artifact/io.github.moonggae/kmedia)
+
 
 KMedia is a cross-platform music player library built with Kotlin Multiplatform (KMP). It provides a consistent API for music playback functionality across both Android and iOS.
 
@@ -14,6 +16,17 @@ KMedia is a cross-platform music player library built with Kotlin Multiplatform 
 - Control Center (iOS) and Media Notification (Android) integration
 
 ## Setup
+
+### Gradle Setup
+
+For Kotlin Multiplatform, add the dependency below to your module's `build.gradle.kts` file:
+```kotlin
+sourceSets {
+    commonMain.dependencies {
+        implementation("io.github.moonggae:kmedia:$kmedia_version")
+    }
+}
+```
 
 ### Android Setup
 
