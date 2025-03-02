@@ -1,9 +1,11 @@
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinCocoapods)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.mavenPublish)
 }
 
 kotlin {
@@ -81,4 +83,37 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+}
+
+mavenPublishing {
+    coordinates("io.github.moonggae", "kmedia", libs.versions.publish.get())
+
+    pom {
+        name.set("KMedia")
+        description.set("Audio player library")
+        inceptionYear.set("2025")
+        url.set("https://github.com/moonggae/KMedia")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        developers {
+            developer {
+                id.set("moonggae")
+                name.set("Euigeun Choi")
+                url.set("https://github.com/moonggae")
+            }
+        }
+        scm {
+            url.set("https://github.com/moonggae/KMedia/")
+            connection.set("scm:git:git://github.com/moonggae/KMedia.git")
+            developerConnection.set("scm:git:ssh://git@github.com/moonggae/KMedia.git")
+        }
+    }
+
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
 }
