@@ -18,7 +18,7 @@ internal actual fun kmediaModule(
         "Android environment requires a Context instance, but received ${context::class.simpleName}"
     }
 
-    single { context } bind Context::class
+    single { context.applicationContext } bind Context::class
     single { cacheConfig }
     single { playbackAnalyticsListener } bind PlaybackAnalyticsListener::class
     single { cacheStatusListener } bind CacheStatusListener::class
