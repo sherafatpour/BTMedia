@@ -62,7 +62,7 @@ Initialize KMedia in your iOS app's `MainViewController.kt`:
 fun MainViewController() = ComposeUIViewController {
     val media = KMedia.Builder()
         .cache(enabled = true, sizeInMb = 1024)
-        .build(0)
+        .build()
 
     App(media)
 }

@@ -11,9 +11,9 @@ import org.koin.core.module.Module
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-expect fun getPlatformPlaybackModule(): Module
+internal expect fun getPlatformPlaybackModule(): Module
 
-val playbackModule = module {
+internal val playbackModule = module {
     includes(cacheModule)
 
     single { CoroutineScope(SupervisorJob() + Dispatchers.IO) } bind CoroutineScope::class

@@ -37,7 +37,7 @@ class KMedia private constructor(
             this.analyticsListener = listener
         }
 
-        fun build(context: Any): KMedia {
+        fun build(context: Any = Unit): KMedia {
             val cacheSettings = CacheConfig(
                 enable = cacheEnabled,
                 sizeMB = cacheSize,
@@ -63,7 +63,7 @@ class KMedia private constructor(
     }
 }
 
-expect fun kmediaModule(
+internal expect fun kmediaModule(
     context: Any,
     cacheConfig: CacheConfig,
     playbackAnalyticsListener: PlaybackAnalyticsListener,

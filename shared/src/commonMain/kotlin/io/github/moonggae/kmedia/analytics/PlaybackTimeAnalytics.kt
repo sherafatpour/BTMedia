@@ -8,6 +8,6 @@ interface PlaybackAnalyticsListener {
     )
 }
 
-class NoOpPlaybackAnalyticsListener: PlaybackAnalyticsListener {
+internal class NoOpPlaybackAnalyticsListener: PlaybackAnalyticsListener {
     override fun onPlaybackCompleted(musicId: String, totalPlayTimeMs: Long, duration: Long) {}
 }

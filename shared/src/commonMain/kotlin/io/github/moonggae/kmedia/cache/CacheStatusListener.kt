@@ -10,6 +10,6 @@ interface CacheStatusListener {
     }
 }
 
-class NoOpCacheStatusListener: CacheStatusListener {
+internal class NoOpCacheStatusListener: CacheStatusListener {
     override fun onCacheStatusChanged(musicId: String, status: CacheStatusListener.CacheStatus) {}
 }

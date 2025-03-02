@@ -5,6 +5,6 @@ import org.koin.dsl.module
 
 internal expect fun getPlatformCacheModule(): Module
 
-val cacheModule = module {
+internal val cacheModule = module {
     includes(getPlatformCacheModule())
 }

@@ -7,7 +7,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-actual fun kmediaModule(
+internal actual fun kmediaModule(
     context: Any,
     cacheConfig: CacheConfig,
     playbackAnalyticsListener: PlaybackAnalyticsListener,

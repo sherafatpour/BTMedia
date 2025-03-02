@@ -16,7 +16,7 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-actual fun getPlatformPlaybackModule(): Module = module {
+internal actual fun getPlatformPlaybackModule(): Module = module {
     singleOf(::CacheManager)
     singleOf(::PlaybackStateHandler)
     singleOf(::PlaybackIOHandler)
