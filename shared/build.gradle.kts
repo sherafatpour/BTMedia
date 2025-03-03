@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinCocoapods)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
     alias(libs.plugins.mavenPublish)
 }
 
@@ -45,7 +47,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
             implementation(libs.napier)
-            implementation(libs.kotlinx.datetime)
+            implementation(compose.runtime)
         }
 
         androidMain.dependencies {
@@ -60,6 +62,7 @@ kotlin {
 
             implementation(libs.androidx.work.runtime.ktx)
             implementation(libs.koin.android)
+            implementation(compose.ui)
         }
 
         iosMain.dependencies {

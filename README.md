@@ -6,16 +6,16 @@ Audio player library built with Kotlin Multiplatform (KMP). It provides a consis
 ### Android Sample
 
 <p>
-<img width="32.5%" src="readme-assets/android1.png">
-<img width="32.5%" src="readme-assets/android2.png">
-<img width="32.5%" src="readme-assets/android3.png">
+<img width="32%" src="readme-assets/android1.png">
+<img width="32%" src="readme-assets/android2.png">
+<img width="32%" src="readme-assets/android3.png">
 </p>
 
 ### iOS Sample
 <p>
-<img width="32.5%" src="readme-assets/iOS1.PNG">
-<img width="32.5%" src="readme-assets/iOS2.PNG">
-<img width="32.5%" src="readme-assets/iOS3.PNG">
+<img width="32%" src="readme-assets/iOS1.PNG">
+<img width="32%" src="readme-assets/iOS2.PNG">
+<img width="32%" src="readme-assets/iOS3.PNG">
 </p>
 
 ## Key Features
@@ -44,25 +44,6 @@ sourceSets {
 
 ### Android Setup
 
-Initialize KMedia in your Android app's `MainActivity.kt`:
-
-```kotlin
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // Initialize KMedia
-        val media = KMedia.builder()
-            .cache(enabled = true, sizeInMb = 1024)
-            .build(applicationContext)
-        
-        setContent {
-            App(media)
-        }
-    }
-}
-```
-
 Add the following permissions and service to your `AndroidManifest.xml`:
 
 ```xml
@@ -83,18 +64,6 @@ Add the following permissions and service to your `AndroidManifest.xml`:
 
 ### iOS Setup
 
-Initialize KMedia in your iOS app's `MainViewController.kt`:
-
-```kotlin
-fun MainViewController() = ComposeUIViewController {
-    val media = KMedia.Builder()
-        .cache(enabled = true, sizeInMb = 1024)
-        .build()
-
-    App(media)
-}
-```
-
 Add the following to your `Info.plist`:
 
 ```xml
@@ -112,6 +81,19 @@ Add the following to your `Info.plist`:
 ## Usage
 
 ### Basic Usage
+
+KMedia can be initialized in `Composable` using `PlatformContext`
+```kotlin
+@Composable
+fun KMediaSample() {
+    val platformContext = LocalPlatformContext.current
+    val media = remember {
+        KMedia.builder()
+            .cache(enabled = true, sizeInMb = 1024)
+            .build(platformContext)
+    }
+}
+```
 
 KMedia can be used as follows:
 
@@ -191,10 +173,6 @@ media.cache.removeCachedMusic("music1")
 // Clear all cache
 media.cache.clearCache()
 ```
-
-## UI Implementation
-
-For music player UI implementation examples using Compose Multiplatform, please refer to the sample code.
 
 ## Additional Features
 

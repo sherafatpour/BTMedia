@@ -8,9 +8,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import coil3.compose.LocalPlatformContext
 import io.github.moonggae.kmedia.KMedia
 import io.github.moonggae.kmedia.cache.CacheStatusListener
+import io.github.moonggae.kmedia.compose.LocalPlatformContext
 import io.github.moonggae.kmedia.sample.designsystem.theme.NcsTheme
 import io.github.moonggae.kmedia.sample.model.SampleMusic
 import io.github.moonggae.kmedia.sample.model.toMusics
@@ -23,7 +23,8 @@ fun App() {
     var musics: List<SampleMusic> by remember { mutableStateOf(SampleMusicRepository().getSampleMusicList()) }
     val kMedia = remember {
         KMedia.builder()
-            .cache(enabled = true,
+            .cache(
+                enabled = true,
                 sizeInMb = 1024,
                 listener = object : CacheStatusListener {
                     override fun onCacheStatusChanged(musicId: String, status: CacheStatusListener.CacheStatus) {
@@ -33,7 +34,8 @@ fun App() {
                             } else music
                         }
                     }
-                })
+                }
+            )
             .build(platformContext)
     }
 
