@@ -25,6 +25,7 @@ internal class CacheMediaItemWorker(
             cacheStatusListener.onCacheStatusChanged(key, CacheStatusListener.CacheStatus.FULLY_CACHED)
             return Result.success()
         } catch (e: Exception) {
+            e.printStackTrace()
             cacheStatusListener.onCacheStatusChanged(key, CacheStatusListener.CacheStatus.NONE)
             return Result.failure()
         }

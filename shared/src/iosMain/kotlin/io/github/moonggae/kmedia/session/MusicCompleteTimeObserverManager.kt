@@ -1,6 +1,5 @@
 package io.github.moonggae.kmedia.session
 
-import io.github.aakira.napier.Napier
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
 import platform.AVFoundation.currentItem
@@ -18,14 +17,11 @@ class MusicCompleteTimeObserverManager(private val player: AVPlayer) {
             `object` = player.currentItem,
             queue = mainQueue
         ) {
-            Napier.d("onMusicCompleted")
             onMusicCompleted()
         }
     }
 
     fun cleanup() {
-        Napier.d("MusicCompleteTimeObserver cleanup")
-
         observer?.let {
             player.removeTimeObserver(it)
             observer = null

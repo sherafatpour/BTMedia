@@ -2,7 +2,6 @@ package io.github.moonggae.kmedia.analytics
 
 import io.github.moonggae.kmedia.model.Music
 import io.github.moonggae.kmedia.util.toMilliSeconds
-import io.github.aakira.napier.Napier
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import platform.AVFoundation.AVPlayer
@@ -39,7 +38,6 @@ internal class PlaybackAnalyticsManager(
 
         player.currentItem?.asset?.loadValuesAsynchronouslyForKeys(listOf("duration")) {
             currentDuration = player.currentItem?.duration?.toMilliSeconds() ?: 0L
-            Napier.d("Duration updated: $currentDuration")
         }
     }
 
@@ -50,7 +48,7 @@ internal class PlaybackAnalyticsManager(
             val currentPosition = time.toMilliSeconds()
 
             if (kotlin.math.abs(currentPosition - lastPosition) > 500) {
-                Napier.d("Seek detected: $lastPosition -> $currentPosition")
+
             }
             else if (player.rate > 0) {
                 accumulatedPlayTime += (currentPosition - lastPosition)
@@ -69,7 +67,6 @@ internal class PlaybackAnalyticsManager(
         val music = currentMusic ?: return
 
         if (accumulatedPlayTime > 0) {
-            Napier.d("Logging playback time: ${accumulatedPlayTime}ms for ${music.id}, duration: $currentDuration")
             analyticsHelper.onPlaybackCompleted(music.id, accumulatedPlayTime, currentDuration)
         }
     }

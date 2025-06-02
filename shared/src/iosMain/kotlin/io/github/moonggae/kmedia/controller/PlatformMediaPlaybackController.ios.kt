@@ -17,7 +17,6 @@ import io.github.moonggae.kmedia.model.PlayingStatus
 import io.github.moonggae.kmedia.model.RepeatMode
 import io.github.moonggae.kmedia.session.PlaybackStateObserverManager
 import io.github.moonggae.kmedia.state.PlaybackStateManager
-import io.github.aakira.napier.Napier
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -157,7 +156,6 @@ internal class PlatformMediaPlaybackController(
         music: Music,
         playImmediately: Boolean,
     ) {
-        Napier.d("[${music.title}] cache failed")
         prepareAndPlay(streamingAsset, music, playImmediately)
         scope.launch(Dispatchers.IO) {
             cacheStatusListener.onCacheStatusChanged(music.id, CacheStatusListener.CacheStatus.NONE)
@@ -197,7 +195,6 @@ internal class PlatformMediaPlaybackController(
                 )
             } else {
                 // fallback: 다음 곡으로
-                Napier.d("[${music.title}] fallback")
                 scope.launch(Dispatchers.IO) {
                     cacheStatusListener.onCacheStatusChanged(music.id, CacheStatusListener.CacheStatus.NONE)
                 }

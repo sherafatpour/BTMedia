@@ -1,6 +1,5 @@
 package io.github.moonggae.kmedia.controller
 
-import io.github.aakira.napier.Napier
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionCategoryPlayback
@@ -15,7 +14,7 @@ class AudioSessionManager {
             audioSession.setCategory(AVAudioSessionCategoryPlayback, null)
             audioSession.setActive(true, null)
         } catch (e: Exception) {
-            Napier.e("Error setting up audio session: ${e.message}")
+            e.printStackTrace()
         }
     }
 }

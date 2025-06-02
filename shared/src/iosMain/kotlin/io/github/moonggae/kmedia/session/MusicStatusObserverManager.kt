@@ -1,6 +1,5 @@
 package io.github.moonggae.kmedia.session
 
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import platform.AVFoundation.AVPlayerItem
@@ -18,7 +17,6 @@ class MusicStatusObserverManager(
     private var currentItemStatusJob: kotlinx.coroutines.Job? = null
 
     fun observeItemStatus(item: AVPlayerItem, onReadyToPlay: () -> Unit, onPlaybackStateChanged: () -> Unit) {
-        Napier.d("MusicStatusObserver setup")
         currentItemStatusJob?.cancel()
 
         currentItemStatusJob = coroutineScope.launch {
@@ -26,14 +24,14 @@ class MusicStatusObserverManager(
                 "status",
                 NSKeyValueObservingOptionInitial or NSKeyValueObservingOptionNew
             ).collect { status ->
-                Napier.d("itemStatusObserver: $status")
                 when (status) {
-                    AVPlayerStatusUnknown -> Napier.d("unknown status")
+                    AVPlayerStatusUnknown -> {
+                    }
                     AVPlayerStatusReadyToPlay -> {
-                        Napier.d("ready to play")
                         onReadyToPlay()
                     }
-                    AVPlayerStatusFailed -> Napier.d("failed, error: ${item.error}")
+                    AVPlayerStatusFailed -> {
+                    }
                 }
                 onPlaybackStateChanged()
             }
@@ -41,8 +39,6 @@ class MusicStatusObserverManager(
     }
 
     fun cleanup() {
-        Napier.d("MusicStatusObserver cleanup")
-
         currentItemStatusJob?.cancel()
         currentItemStatusJob = null
     }

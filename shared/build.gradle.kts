@@ -46,7 +46,6 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
-            implementation(libs.napier)
             implementation(compose.runtime)
         }
 

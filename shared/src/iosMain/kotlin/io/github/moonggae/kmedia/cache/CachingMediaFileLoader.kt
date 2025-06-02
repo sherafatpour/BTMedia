@@ -1,6 +1,5 @@
 package io.github.moonggae.kmedia.cache
 
-import io.github.aakira.napier.Napier
 import platform.AVFoundation.*
 import platform.Foundation.*
 import kotlinx.cinterop.*
@@ -43,7 +42,6 @@ class CachingMediaFileLoader(
     private fun handleDownloadCompletion(task: NSURLSessionTask, error: NSError?) {
         val taskId = task.taskIdentifier.toLong()
         if (error != null) {
-            Napier.e("Download failed: ${error.localizedDescription}")
             downloadTasks[taskId]?.let { downloadInfo ->
                 cleanupFailedDownload(NSURL(string = downloadInfo.url))
                 downloadInfo.onFail?.invoke()
@@ -237,7 +235,6 @@ class CachingMediaFileLoader(
             )
         )
 
-        Napier.d("onGotAsset: start caching", tag="loadFileWithCaching")
         onGotAsset(streamingAsset)
 
         if (url.absoluteString?.let { urlString ->
@@ -327,7 +324,7 @@ class CachingMediaFileLoader(
                         fileManager.removeItemAtURL(cacheUrl, error = null)
                     }
                 } catch (e: Exception) {
-                    Napier.e("Failed to cleanup cache file", e)
+                    e.printStackTrace()
                 }
             }
         }
@@ -368,7 +365,7 @@ class CachingMediaFileLoader(
                     defaults.setObject(map, urlToIdMapKey)
                 }
             } catch (e: Exception) {
-                Napier.e("Failed to remove cache file", e)
+                e.printStackTrace()
             }
         }
     }
@@ -390,7 +387,7 @@ class CachingMediaFileLoader(
             try {
                 fileManager.removeItemAtPath(cacheDirectory?.path!!, null)
             } catch (e: Exception) {
-                Napier.e("Failed to cleanup cache directory", e)
+                e.printStackTrace()
             }
         }
     }

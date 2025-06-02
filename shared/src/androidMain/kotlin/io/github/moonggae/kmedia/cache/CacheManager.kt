@@ -17,7 +17,6 @@ import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -191,8 +190,6 @@ fun Cache.isFullyCached(key: String): Boolean {
         .get(ContentMetadata.KEY_CONTENT_LENGTH, -1L)
 
     val cachedByte = this.getCachedBytes(key, 0, contentLength)
-
-    Napier.d("$key: $cachedByte / $contentLength")
 
     return cachedByte == contentLength
 }

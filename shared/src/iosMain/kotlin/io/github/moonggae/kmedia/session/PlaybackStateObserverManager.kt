@@ -1,6 +1,5 @@
 package io.github.moonggae.kmedia.session
 
-import io.github.aakira.napier.Napier
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
@@ -33,10 +32,14 @@ class PlaybackStateObserverManager(
         ) {
             when (player.timeControlStatus) {
                 AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate -> {
-                    Napier.d("waiting to play, reason: ${player.reasonForWaitingToPlay}")
+
                 }
-                AVPlayerTimeControlStatusPlaying -> Napier.d("playing")
-                AVPlayerTimeControlStatusPaused -> Napier.d("paused")
+                AVPlayerTimeControlStatusPlaying -> {
+
+                }
+                AVPlayerTimeControlStatusPaused -> {
+
+                }
             }
             onPlaybackStateChanged()
         }

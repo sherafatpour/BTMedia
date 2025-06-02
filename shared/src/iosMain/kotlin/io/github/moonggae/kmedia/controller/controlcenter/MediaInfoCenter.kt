@@ -2,7 +2,6 @@ package io.github.moonggae.kmedia.controller.controlcenter
 
 import io.github.moonggae.kmedia.model.Music
 import io.github.moonggae.kmedia.model.PlaybackState
-import io.github.aakira.napier.Napier
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -80,18 +79,16 @@ internal class MediaInfoCenter(
         settingArtworkJob = coroutineScope.launch {
             try {
                 val image = loadImage(coverUrl)
-                Napier.d("image: $image")
                 val artwork = MPMediaItemArtwork(boundsSize = CGSizeMake(600.0, 600.0)) { _ ->
                     image
                 }
-                Napier.d("artwork: $artwork")
 
                 val currentInfo = nowPlayingInfoCenter.nowPlayingInfo?.toMutableMap()
                     ?: mutableMapOf()
                 currentInfo[MPMediaItemPropertyArtwork] = artwork
                 nowPlayingInfoCenter.nowPlayingInfo = currentInfo
             } catch (e: Exception) {
-                Napier.e("Failed to load artwork: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
