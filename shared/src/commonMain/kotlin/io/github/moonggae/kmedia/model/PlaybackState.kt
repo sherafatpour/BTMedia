@@ -4,7 +4,7 @@ const val TIME_UNSET = Long.MIN_VALUE + 1
 const val CURRENT_INDEX_UNSET = -1
 
 data class PlaybackState(
-    val mediaId: String? = null,
+    val music: Music? = null,
     val playingStatus: PlayingStatus = PlayingStatus.IDLE,
     val currentIndex: Int = CURRENT_INDEX_UNSET,
     val hasPrevious: Boolean = false,

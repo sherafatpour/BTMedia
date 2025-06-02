@@ -10,7 +10,7 @@ class SampleMusicRepository {
                 title = "Stutterfly",
                 artist = "Spektrem",
                 coverUrl = "https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/001/857/1000x0/stutterfly-1740704455-NQ13SD2ADl.jpg",
-                uri = "https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/001/857/stutterfly-1740704457-ZM6MLGNhj7.mp3"
+                uri = ""
             ),
             SampleMusic(
                 id = "c4fe8d10-a9d2-4ce4-855b-19afc9eb9edc",

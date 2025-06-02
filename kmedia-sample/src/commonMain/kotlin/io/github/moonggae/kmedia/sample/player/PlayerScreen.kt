@@ -78,7 +78,7 @@ val PLAYER_SMALL_HEIGHT_DEFAULT = 60.dp
 fun PlayerScreen(
     modifier: Modifier = Modifier,
     musics: List<SampleMusic>,
-    currentMusic: SampleMusic,
+    currentMusic: SampleMusic?,
     playbackState: PlaybackState,
     minHeight: Dp = PLAYER_SMALL_HEIGHT_DEFAULT,
     onPlay: () -> Unit,
@@ -147,8 +147,8 @@ fun PlayerScreen(
 
                             if (bottomSheetState.progress > 0.3f) {
                                 PlayerScreenSmallInformation(
-                                    title = currentMusic.title,
-                                    artist = currentMusic.artist,
+                                    title = currentMusic?.title ?: "None",
+                                    artist = currentMusic?.artist ?: "None",
                                     modifier = Modifier
                                         .padding(start = 16.dp)
                                         .fillMaxHeight()
@@ -210,7 +210,7 @@ fun PlayerScreen(
 private fun PlayerScreenBigContent(
     modifier: Modifier = Modifier,
     draggableStatePercentage: Float,
-    music: SampleMusic,
+    music: SampleMusic?,
     playbackState: PlaybackState,
     onSeekTo: (position: Long) -> Unit,
     onPlay: () -> Unit,
@@ -226,7 +226,7 @@ private fun PlayerScreenBigContent(
     Column {
         Box {
             PlayerScreenCoverImage(
-                url = music.coverUrl,
+                url = music?.coverUrl ?: "",
                 progress = draggableStatePercentage,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -239,7 +239,7 @@ private fun PlayerScreenBigContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = music.title,
+                text = music?.title ?: "None",
                 style = NcsTypography.Music.Title.large.copy(
                     color = ListItemCardDefaults.listItemCardColors().labelColor,
                 ),
@@ -249,7 +249,7 @@ private fun PlayerScreenBigContent(
             )
 
             Text(
-                text = music.artist,
+                text = music?.artist ?: "None",
                 style = NcsTypography.Music.Artist.large.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

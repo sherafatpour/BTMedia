@@ -85,6 +85,12 @@ class PlaylistManager {
         currentIndex = playlist.indexOfFirst { it.id == currentMusicId }
     }
 
+    fun replaceMusic(index: Int, music: Music) {
+        if (index in 0..playlist.lastIndex) {
+            playlist[index] = music
+        }
+    }
+
     fun getNextIndex(): Int? = when {
         playlist.isEmpty() -> null
         isShuffleOn -> shuffleManager.getNextIndex(currentIndex, repeatMode)

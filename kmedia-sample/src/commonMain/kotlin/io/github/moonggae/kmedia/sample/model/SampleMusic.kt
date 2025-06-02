@@ -12,6 +12,14 @@ data class SampleMusic(
     val cacheStatus: CacheStatusListener.CacheStatus = CacheStatusListener.CacheStatus.NONE
 )
 
+fun SampleMusic.toMusic() = Music(
+    id = this.id,
+    title = this.title,
+    artist = this.artist,
+    coverUrl = this.coverUrl,
+    uri = this.uri
+)
+
 fun List<SampleMusic>.toMusics() = this.map { sample ->
     Music(
         id = sample.id,

@@ -308,6 +308,16 @@ internal class PlatformMediaPlaybackController(
         updatePlaybackState()
     }
 
+    override fun replaceMusic(index: Int, music: Music) {
+        val wasCurrentPlaying = playlistManager.currentIndex == index
+        playlistManager.replaceMusic(index, music)
+        
+        if (wasCurrentPlaying) {
+            setMusic(music, playerStateManager.currentPlaybackStatus == PlayingStatus.PLAYING)
+        }
+        updatePlaybackState()
+    }
+
     override fun release() {
         stop()
     }
@@ -316,7 +326,7 @@ internal class PlatformMediaPlaybackController(
         val currentSeconds = playerStateManager.getCurrentPosition()
         val durationSeconds = playerStateManager.getDuration()
         val state = PlaybackState(
-            mediaId = playlistManager.getCurrentMusic()?.id,
+            music = playlistManager.getCurrentMusic(),
             playingStatus = if (isLoading) PlayingStatus.BUFFERING else playerStateManager.currentPlaybackStatus,
             currentIndex = playlistManager.currentIndex,
             hasPrevious = playlistManager.hasPrevious(),
@@ -333,14 +343,6 @@ internal class PlatformMediaPlaybackController(
             controlCenterManager.updatePlaybackState(music, state)
         }
     }
-
-//    override fun fastForward() {
-//        // Implementation needed
-//    }
-//
-//    override fun rewind() {
-//        // Implementation needed
-//    }
 }
 
 private fun PlatformMediaPlaybackController.getMediaControlHandler(): MediaCommandHandler = object : MediaCommandHandler {

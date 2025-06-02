@@ -41,13 +41,25 @@ fun App() {
 
 
     val playbackState by kMedia.playbackState.collectAsState()
-    val currentMusic = remember(playbackState.mediaId) {
-        musics.find { it.id == playbackState.mediaId } ?: musics.first()
+    val currentMusic = remember(playbackState.music) {
+        musics.find { it.id == playbackState.music?.id }
     }
 
     LaunchedEffect(Unit) {
-        if (playbackState.mediaId == null) {
+        if (playbackState.music == null) {
             kMedia.player.prepare(musics.toMusics(), 0, 0)
+        }
+    }
+
+    LaunchedEffect(playbackState.music) {
+        playbackState.music?.let { music ->
+            if (music.id == "1c05b730-1455-40d2-b84c-30faf529de76" && music.uri == "") {
+                kMedia.player.replaceMusic(
+                    playbackState.currentIndex, music.copy(
+                        uri = "https://ncsmusic.s3.eu-west-1.amazonaws.com/tracks/000/001/857/stutterfly-1740704457-ZM6MLGNhj7.mp3"
+                    )
+                )
+            }
         }
     }
 
@@ -72,7 +84,7 @@ fun App() {
                 onDeleteMusicInPlaylist = { deleteMusicIds ->
                     musics = musics.filterNot { deleteMusicIds.contains(it.id) }
                     kMedia.player.removeMusics(*deleteMusicIds.toTypedArray())
-                }
+                },
             )
         }
     }

@@ -32,3 +32,11 @@ internal val MediaItem.isNetworkSource: Boolean
         val uriScheme = this.localConfiguration?.uri?.scheme?.lowercase()
         return uriScheme == "http" || uriScheme == "https"
     }
+
+internal fun MediaItem.asMusic(): Music = Music(
+    id = mediaId,
+    title = mediaMetadata.title.toString(),
+    artist = mediaMetadata.artist.toString(),
+    coverUrl = mediaMetadata.artworkUri.toString(),
+    uri = localConfiguration?.uri.toString()
+)

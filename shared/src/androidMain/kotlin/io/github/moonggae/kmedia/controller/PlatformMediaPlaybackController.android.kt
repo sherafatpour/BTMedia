@@ -111,6 +111,10 @@ internal class PlatformMediaPlaybackController(
         }
     }
 
+    override fun replaceMusic(index: Int, music: Music) = executeAfterPrepare { controller ->
+        controller.replaceMediaItem(index, music.asMediaItem())
+    }
+
     override fun release() = executeAfterPrepare { controller ->
         controller.release()
     }
@@ -121,13 +125,4 @@ internal class PlatformMediaPlaybackController(
             action(controller)
         }
     }
-
-
-//    override fun fastForward() = executeAfterPrepare { controller ->
-//        controller.seekForward()
-//    }
-//
-//    override fun rewind() = executeAfterPrepare { controller ->
-//        controller.seekBack()
-//    }
 }

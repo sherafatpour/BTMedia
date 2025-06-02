@@ -3,10 +3,11 @@ package io.github.moonggae.kmedia.listener
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
-import io.github.moonggae.kmedia.model.RepeatMode
 import io.github.moonggae.kmedia.model.PlaybackState
 import io.github.moonggae.kmedia.model.PlayingStatus
+import io.github.moonggae.kmedia.model.RepeatMode
 import io.github.moonggae.kmedia.state.PlaybackStateManager
+import io.github.moonggae.kmedia.util.asMusic
 import io.github.moonggae.kmedia.util.playingStatus
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -94,7 +95,7 @@ internal class PlaybackStateHandler(
 
     private fun updatePlayState() {
         playbackStateManager.playbackState = PlaybackState(
-            mediaId = player.currentMediaItem?.mediaId,
+            music = player.currentMediaItem?.asMusic(),
             playingStatus = player.playingStatus,
             currentIndex = player.currentMediaItemIndex,
             hasPrevious = player.hasPreviousMediaItem(),
