@@ -23,7 +23,8 @@ Audio player library built with Kotlin Multiplatform (KMP). It provides a consis
 - Supports Kotlin Multiplatform (Android, iOS)
 - Consistent music playback experience with a unified API
 - Media caching support
-- Playlist management (add, remove, reorder)
+- Playlist management (add, remove, reorder, replace)
+- Dynamic music replacement during playback
 - Shuffle and repeat mode support
 - Playback state and position monitoring
 - Background playback support
@@ -140,7 +141,59 @@ when (playbackState.playingStatus) {
 // Current position and duration
 val position = playbackState.position
 val duration = playbackState.duration
+
+// Current music information
+val currentMusic = playbackState.music
+val currentIndex = playbackState.currentIndex
 ```
+
+### Playlist Management
+
+#### Basic Playlist Operations
+
+```kotlin
+// Add music to current playlist
+media.player.addMusic(newMusic)
+
+// Add multiple musics to playlist
+media.player.addMusics(musicList)
+
+// Remove music at specific index
+media.player.removeMusic(index = 2)
+
+// Clear entire playlist
+media.player.clearPlaylist()
+```
+
+#### Dynamic Music Replacement
+
+You can replace music in the current playlist without interrupting playback:
+
+```kotlin
+// Replace music at specific index
+val updatedMusic = currentMusic.copy(
+    uri = "https://example.com/new-track.mp3",
+    title = "Updated Title"
+)
+media.player.replaceMusic(index = 0, music = updatedMusic)
+
+// Replace current playing music
+val playbackState by media.playbackState.collectAsState()
+playbackState.music?.let { currentMusic ->
+    if (needsUpdate(currentMusic)) {
+        val newMusic = currentMusic.copy(
+            uri = getUpdatedUri(currentMusic.id)
+        )
+        media.player.replaceMusic(playbackState.currentIndex, newMusic)
+    }
+}
+```
+
+**Use Cases for Music Replacement:**
+- Loading high-quality audio URLs after initial playlist setup
+- Updating expired streaming URLs
+- Switching between different audio quality versions
+- Dynamic content updates during playback
 
 ### Repeat and Shuffle Modes
 
@@ -174,7 +227,7 @@ media.cache.removeCachedMusic("music1")
 media.cache.clearCache()
 ```
 
-## Additional Features
+## Advanced Features
 
 ### CacheStatusListener
 

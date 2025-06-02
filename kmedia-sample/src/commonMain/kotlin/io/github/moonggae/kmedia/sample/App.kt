@@ -51,6 +51,7 @@ fun App() {
         }
     }
 
+    // replaceMusic example
     LaunchedEffect(playbackState.music) {
         playbackState.music?.let { music ->
             if (music.id == "1c05b730-1455-40d2-b84c-30faf529de76" && music.uri == "") {
